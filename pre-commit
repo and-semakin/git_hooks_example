@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
 
-# Простой pre-commit хук.
-# Не учитывает множество моментов.
-# Для реального использования придётся сильно допилить.
-
-# Включаем режим, в котором любая ошибка сразу же завершит весь скрипт ошибкой.
-set -e
-
 # Получаем список файлов, которые пользователь пытается закоммитить,
 # и выбираем из них те, которые заканчиваются на `.py`.
 # Взято отсюда: https://stackoverflow.com/a/3068990/10650942.
 CHANGED_PYTHON_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep ".py\$")
 
+if [ -z "$CHANGED_PYTHON_FILES" ]
+then
+    echo "No Python files found. No reason to run checks."
+    exit 0
+fi
+
+# Включаем режим, в котором любая ошибка сразу же завершит весь скрипт ошибкой.
+set -e
+
 # Запускаем проверки.
 # Если хотя бы одна завершится ошибкой, то операция будет прервана.
 flake8 $CHANGED_PYTHON_FILES
 black --check $CHANGED_PYTHON_FILES
+
+echo "All checks successfully passed."
